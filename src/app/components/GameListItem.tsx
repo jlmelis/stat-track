@@ -10,7 +10,6 @@ interface GameListItemProps {
         date: string;
         opponent: string;
     };
-    currentGameId: string | null;
     setCurrentGameId: (id: string | null) => void;
     deleteGame: (id: string) => void;
 }
@@ -21,12 +20,12 @@ const listItemVariants = {
     exit: { opacity: 0, x: 10, transition: { duration: 0.1 } }
 };
 
-const GameListItem: React.FC<GameListItemProps> = ({ game, currentGameId, setCurrentGameId, deleteGame }) => {
+const GameListItem: React.FC<GameListItemProps> = ({ game, setCurrentGameId, deleteGame }) => {
     return (
         <motion.div
             key={game.id}
             variants={listItemVariants}
-            initial={false}
+            initial="hidden"
             animate="visible"
             exit="exit"
             className="flex items-center justify-between p-2 border-b last:border-0"

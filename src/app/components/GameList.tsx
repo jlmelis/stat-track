@@ -6,18 +6,27 @@ interface Game {
     id: string;
     date: string;
     opponent: string;
-    playerStats: { [playerId: string]: any };
+    playerStats: { [playerId: string]: {
+        kills: number;
+        blocks: number;
+        aces: number;
+        serves: number;
+        passes: number;
+        sets: number;
+        digs: number;
+        assists: number;
+        errors: number;
+    } };
 }
 
 
 interface GameListProps {
     games: Game[];
-    currentGameId: string | null;
     setCurrentGameId: (id: string | null) => void;
     deleteGame: (id: string) => void;
 }
 
-const GameList: React.FC<GameListProps> = ({ games, currentGameId, setCurrentGameId, deleteGame }) => {
+const GameList: React.FC<GameListProps> = ({ games, setCurrentGameId, deleteGame }) => {
     return (
         <Card>
             <CardHeader>
@@ -29,7 +38,6 @@ const GameList: React.FC<GameListProps> = ({ games, currentGameId, setCurrentGam
                         <GameListItem
                             key={game.id}
                             game={game}
-                            currentGameId={currentGameId}
                             setCurrentGameId={setCurrentGameId}
                             deleteGame={deleteGame}
                         />

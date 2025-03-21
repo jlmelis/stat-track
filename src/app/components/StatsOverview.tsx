@@ -2,6 +2,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+interface Game {
+    id: string;
+    date: string;
+    opponent: string;
+    playerStats: { [playerId: string]: PlayerStats };
+}
+
 interface Player {
     id: string;
     name: string;
@@ -22,24 +29,24 @@ interface PlayerStats {
 
 interface StatsOverviewProps {
     players: Player[];
-    games: any[];
+    games: Game[];
 }
 
-const initialPlayerStats: PlayerStats = {
-    kills: 0,
-    blocks: 0,
-    aces: 0,
-    serves: 0,
-    passes: 0,
-    sets: 0,
-    digs: 0,
-    assists: 0,
-    errors: 0,
-};
+const StatsOverview: React.FC<StatsOverviewProps> = ({ players, games }: StatsOverviewProps) => {
+    const initialPlayerStats: PlayerStats = {
+        kills: 0,
+        blocks: 0,
+        aces: 0,
+        serves: 0,
+        passes: 0,
+        sets: 0,
+        digs: 0,
+        assists: 0,
+        errors: 0,
+    };
 
-const StatsOverview: React.FC<StatsOverviewProps> = ({ players, games }) => {
     const getPlayerTotalStats = (playerId: string): PlayerStats => {
-        return games.reduce((total, game) => {
+        return games.reduce((total: PlayerStats, game) => {
             const gameStats = game.playerStats[playerId] || initialPlayerStats;  // Use initial if undefined
             for (const key in total) {
                 if (total.hasOwnProperty(key)) {

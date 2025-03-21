@@ -1,29 +1,37 @@
 import { Button } from "@/components/ui/button";
 
+interface Game {
+    id: string;
+    date: string;
+    opponent: string;
+    playerStats: { [playerId: string]: PlayerStatsType };
+}
+
+interface PlayerStatsType {
+    kills: number;
+    blocks: number;
+    aces: number;
+    serves: number;
+    passes: number;
+    sets: number;
+    digs: number;
+    assists: number;
+    errors: number;
+}
+
 interface PlayerStatsProps {
     gameId: string;
-    playerId: string;
     player: {
         id: string;
         name: string;
         number: string;
     };
-    initialPlayerStats: {
-        kills: number;
-        blocks: number;
-        aces: number;
-        serves: number;
-        passes: number;
-        sets: number;
-        digs: number;
-        assists: number;
-        errors: number;
-    };
-    games: any[];
+    initialPlayerStats: PlayerStatsType;
+    games: Game[];
     updateStat: (gameId: string, playerId: string, stat: string, value: number) => void;
 }
 
-const PlayerStats: React.FC<PlayerStatsProps> = ({ gameId, playerId, player, initialPlayerStats, games, updateStat }) => {
+const PlayerStats: React.FC<PlayerStatsProps> = ({ gameId, player, initialPlayerStats, games, updateStat }) => {
     return (
         <div key={player.id} className="mb-4 p-4 border rounded">
             <h3 className="text-lg font-semibold">{player.name} (#{player.number})</h3>
@@ -35,16 +43,16 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ gameId, playerId, player, ini
                             <Button
                                 variant="outline"
                                 size="icon"
-                                onClick={() => updateStat(gameId, player.id, stat, (games.find(g => g.id === gameId)?.playerStats[player.id]?.[stat] || 0) - 1)}
-                                disabled={(games.find(g => g.id === gameId)?.playerStats[player.id]?.[stat] || 0) <= 0}
+                                 onClick={() => updateStat(gameId, player.id, stat, (games.find(g => g.id === gameId)?.playerStats[player.id]?.[stat as keyof PlayerStatsType] || 0) - 1)}
+                                disabled={(games.find(g => g.id === gameId)?.playerStats[player.id]?.[stat as keyof PlayerStatsType] || 0) <= 0}
                             >
                                 -
                             </Button>
-                            <span>{games.find(g => g.id === gameId)?.playerStats[player.id]?.[stat] || 0}</span>
+                            <span>{games.find(g => g.id === gameId)?.playerStats[player.id]?.[stat as keyof PlayerStatsType] || 0}</span>
                             <Button
                                 variant="outline"
                                 size="icon"
-                                onClick={() => updateStat(gameId, player.id, stat, (games.find(g => g.id === gameId)?.playerStats[player.id]?.[stat] || 0) + 1)}
+                                onClick={() => updateStat(gameId, player.id, stat, (games.find(g => g.id === gameId)?.playerStats[player.id]?.[stat as keyof PlayerStatsType] || 0) + 1)}
                             >
                                 +
                             </Button>

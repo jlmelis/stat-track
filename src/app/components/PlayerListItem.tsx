@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { motion } from 'framer-motion';
-import { Edit, Trash2 } from 'lucide-react';
 
 interface Player {
     id: string;
@@ -12,11 +11,8 @@ interface Player {
 
 interface PlayerListItemProps {
     player: Player;
-    editingPlayerId: string | null;
-    setEditingPlayerId: (id: string | null) => void;
     setNewPlayerName: (name: string) => void;
     setNewPlayerNumber: (number: string) => void;
-    deletePlayer: (id: string) => void;
 }
 
 const listItemVariants = {
@@ -27,11 +23,8 @@ const listItemVariants = {
 
 const PlayerListItem: React.FC<PlayerListItemProps> = ({
     player,
-    editingPlayerId,
-    setEditingPlayerId,
     setNewPlayerName,
     setNewPlayerNumber,
-    deletePlayer,
 }) => {
     return (
         <motion.div
@@ -50,19 +43,11 @@ const PlayerListItem: React.FC<PlayerListItemProps> = ({
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                        setEditingPlayerId(player.id);
                         setNewPlayerName(player.name);
                         setNewPlayerNumber(player.number);
                     }}
                 >
-                    <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => deletePlayer(player.id)}
-                >
-                    <Trash2 className="h-4 w-4" />
+                    
                 </Button>
             </div>
         </motion.div>

@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Moon, Sun, Monitor, PlusCircle, Trash2, Edit, Save, ListChecks } from 'lucide-react';
+import { Moon, Sun, Monitor } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from 'react';
 import GameForm from './GameForm';
 import GameList from './GameList';
 import PlayerForm from './PlayerForm';
@@ -54,17 +53,6 @@ const initialPlayerStats: PlayerStats = {
 };
 
 // Animation Variants
-const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-    exit: { opacity: 0, y: -20, transition: { duration: 0.2 } }
-};
-
-const listItemVariants = {
-    hidden: { opacity: 0, x: -10 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.2 } },
-    exit: { opacity: 0, x: 10, transition: { duration: 0.1 } }
-};
 
 export default function VolleyballStatTracker() {
     const { theme, setTheme } = useTheme();
@@ -83,11 +71,10 @@ export default function VolleyballStatTracker() {
         return [];
     });
     const [currentGameId, setCurrentGameId] = useState<string | null>(null);
-    const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null);
     const [newPlayerName, setNewPlayerName] = useState('');
     const [newPlayerNumber, setNewPlayerNumber] = useState('');
     // Persist state to localStorage
-    useEffect(() => {
+     useEffect(() => {
         if (typeof window !== 'undefined') {
             localStorage.setItem('volleyballPlayers', JSON.stringify(players));
             localStorage.setItem('volleyballGames', JSON.stringify(games));
@@ -117,28 +104,7 @@ export default function VolleyballStatTracker() {
         setPlayers(prevPlayers => [...prevPlayers, newPlayer]);
         setNewPlayerName('');
         setNewPlayerNumber('');
-        setEditingPlayerId(null); // Exit edit mode
     }, [newPlayerName, newPlayerNumber]);
-
-    const updatePlayer = (id: string, newName: string, newNumber: string) => {
-        setPlayers(prevPlayers =>
-            prevPlayers.map(p =>
-                p.id === id ? { ...p, name: newName, number: newNumber } : p
-            )
-        );
-        setEditingPlayerId(null); // Exit edit mode after saving
-    };
-
-    const deletePlayer = (id: string) => {
-        setPlayers(prevPlayers => prevPlayers.filter(p => p.id !== id));
-        // Remove player stats from all games
-        setGames(prevGames =>
-            prevGames.map(game => {
-                const { [id]: _, ...rest } = game.playerStats; // Destructure to remove
-                return { ...game, playerStats: rest };
-            })
-        );
-    };
 
     const deleteGame = (id: string) => {
         setGames(prevGames => prevGames.filter(g => g.id !== id));
@@ -164,18 +130,6 @@ export default function VolleyballStatTracker() {
                     : game
             )
         );
-    };
-
-    const getPlayerTotalStats = (playerId: string): PlayerStats => {
-        return games.reduce((total, game) => {
-            const gameStats = game.playerStats[playerId] || initialPlayerStats;  // Use initial if undefined
-            for (const key in total) {
-                if (total.hasOwnProperty(key)) {
-                  total[key as keyof PlayerStats] += gameStats[key as keyof PlayerStats] || 0;
-                }
-            }
-            return total;
-        }, { ...initialPlayerStats });
     };
 
     // Theme Toggle
@@ -220,11 +174,10 @@ export default function VolleyballStatTracker() {
                         <GameForm onCreateGame={createNewGame} />
 
                         <GameList 
-                            games={games}
-                            currentGameId={currentGameId}
-                            setCurrentGameId={setCurrentGameId}
-                            deleteGame={deleteGame}
-                        />
+                                games={games}
+                                setCurrentGameId={setCurrentGameId}
+                                deleteGame={deleteGame}
+                            />
 
                         {/* Display Stats for Selected Game */}
                         {currentGameId && (
@@ -237,7 +190,6 @@ export default function VolleyballStatTracker() {
                                         <PlayerStats
                                             key={player.id}
                                             gameId={currentGameId}
-                                            playerId={player.id}
                                             player={player}
                                             initialPlayerStats={initialPlayerStats}
                                             games={games}
@@ -252,22 +204,16 @@ export default function VolleyballStatTracker() {
                     {/* Players Tab Content */}
                     <TabsContent value="players" className="space-y-4">
                         <PlayerForm
-                            editingPlayerId={editingPlayerId}
-                            setEditingPlayerId={setEditingPlayerId}
                             newPlayerName={newPlayerName}
                             setNewPlayerName={setNewPlayerName}
                             newPlayerNumber={newPlayerNumber}
                             setNewPlayerNumber={setNewPlayerNumber}
                             addPlayer={addPlayer}
-                            updatePlayer={updatePlayer}
                         />
                         <PlayerList
                             players={players}
-                            editingPlayerId={editingPlayerId}
-                            setEditingPlayerId={setEditingPlayerId}
                             setNewPlayerName={setNewPlayerName}
                             setNewPlayerNumber={setNewPlayerNumber}
-                            deletePlayer={deletePlayer}
                         />
                     </TabsContent>
 
