@@ -8,6 +8,12 @@ import { Moon, Sun, Monitor, PlusCircle, Trash2, Edit, Save, ListChecks } from '
 import { useTheme } from 'next-themes';
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from 'framer-motion';
+import GameForm from './GameForm';
+import GameList from './GameList';
+import PlayerForm from './PlayerForm';
+import PlayerStats from './PlayerStats';
+import PlayerList from './PlayerList';
+import StatsOverview from './StatsOverview';
 
 // Define the types
 interface Player {
@@ -80,9 +86,6 @@ export default function VolleyballStatTracker() {
     const [editingPlayerId, setEditingPlayerId] = useState<string | null>(null);
     const [newPlayerName, setNewPlayerName] = useState('');
     const [newPlayerNumber, setNewPlayerNumber] = useState('');
-    const [newGameDate, setNewGameDate] = useState('');
-    const [newGameOpponent, setNewGameOpponent] = useState('');
-
     // Persist state to localStorage
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -92,20 +95,16 @@ export default function VolleyballStatTracker() {
     }, [players, games]);
 
     // Helper functions
-    const createNewGame = useCallback(() => {
-        if (!newGameDate || !newGameOpponent) return;
-
+    const createNewGame = useCallback((date: string, opponent: string) => {
         const newGame: Game = {
             id: crypto.randomUUID(),
-            date: newGameDate,
-            opponent: newGameOpponent,
+            date: date,
+            opponent: opponent,
             playerStats: Object.fromEntries(players.map(p => [p.id, { ...initialPlayerStats }])),
         };
         setGames(prevGames => [...prevGames, newGame]);
         setCurrentGameId(newGame.id);
-        setNewGameDate('');
-        setNewGameOpponent('');
-    }, [newGameDate, newGameOpponent, players]);
+    }, [players]);
 
     const addPlayer = useCallback(() => {
         if (!newPlayerName.trim() || !newPlayerNumber.trim()) return;
@@ -148,7 +147,7 @@ export default function VolleyballStatTracker() {
         }
     };
 
-    const updateStat = (gameId: string, playerId: string, stat: keyof PlayerStats, value: number) => {
+    const updateStat = (gameId: string, playerId: string, stat: string | number | symbol, value: number) => {
         setGames(prevGames =>
             prevGames.map(game =>
                 game.id === gameId
@@ -218,111 +217,32 @@ export default function VolleyballStatTracker() {
 
                     {/* Games Tab Content */}
                     <TabsContent value="games" className="space-y-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Create New Game</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <input
-                                        type="date"
-                                        placeholder="Date"
-                                        value={newGameDate}
-                                        onChange={(e) => setNewGameDate(e.target.value)}
-                                        className="p-2 border rounded"
-                                    />
-                                    <input
-                                        type="text"
-                                        placeholder="Opponent"
-                                        value={newGameOpponent}
-                                        onChange={(e) => setNewGameOpponent(e.target.value)}
-                                        className="p-2 border rounded"
-                                    />
-                                </div>
-                                <Button onClick={createNewGame} className="w-full">
-                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                    Create Game
-                                </Button>
-                            </CardContent>
-                        </Card>
+                        <GameForm onCreateGame={createNewGame} />
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Games</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <AnimatePresence>
-                                    {games.map((game) => (
-                                        <motion.div
-                                            key={game.id}
-                                            variants={listItemVariants}
-                                            initial="hidden"
-                                            animate="visible"
-                                            exit="exit"
-                                            className="flex items-center justify-between p-2 border-b last:border-0"
-                                        >
-                                            <div>
-                                                {game.date} - {game.opponent}
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => setCurrentGameId(game.id)}
-                                                >
-                                                    <ListChecks className="mr-2 h-4 w-4" />
-                                                    View Stats
-                                                </Button>
-                                                <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    onClick={() => deleteGame(game.id)}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </motion.div>
-                                    ))}
-                                </AnimatePresence>
-                            </CardContent>
-                        </Card>
+                        <GameList 
+                            games={games}
+                            currentGameId={currentGameId}
+                            setCurrentGameId={setCurrentGameId}
+                            deleteGame={deleteGame}
+                        />
 
                         {/* Display Stats for Selected Game */}
                         {currentGameId && (
                             <Card>
                                 <CardHeader>
-                                    <CardTitle>Game Stats: {games.find(g => g.id === currentGameId)?.date} - {games.find(g => g.id === currentGameId)?.opponent}</CardTitle>
+                                 <CardTitle>Game Stats: {games.find(g => g.id === currentGameId)?.date} - {games.find(g => g.id === currentGameId)?.opponent}</CardTitle>
                                 </CardHeader>
                                 <CardContent>
                                     {players.map((player) => (
-                                        <div key={player.id} className="mb-4 p-4 border rounded">
-                                            <h3 className="text-lg font-semibold">{player.name} (#{player.number})</h3>
-                                            <div className="grid grid-cols-3 gap-2">
-                                                {Object.keys(initialPlayerStats).map((stat) => (
-                                                    <div key={stat} className="flex items-center justify-between">
-                                                        <span>{stat.charAt(0).toUpperCase() + stat.slice(1)}:</span>
-                                                        <div className="flex gap-2">
-                                                            <Button
-                                                                variant="outline"
-                                                                size="icon"
-                                                                onClick={() => updateStat(currentGameId, player.id, stat as keyof PlayerStats, (games.find(g => g.id === currentGameId)?.playerStats[player.id]?.[stat as keyof PlayerStats] || 0) - 1)}
-                                                                disabled={(games.find(g => g.id === currentGameId)?.playerStats[player.id]?.[stat as keyof PlayerStats] || 0) <= 0}
-                                                            >
-                                                                -
-                                                            </Button>
-                                                            <span>{games.find(g => g.id === currentGameId)?.playerStats[player.id]?.[stat as keyof PlayerStats] || 0}</span>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="icon"
-                                                                onClick={() => updateStat(currentGameId, player.id, stat as keyof PlayerStats, (games.find(g => g.id === currentGameId)?.playerStats[player.id]?.[stat as keyof PlayerStats] || 0) + 1)}
-                                                            >
-                                                                +
-                                                            </Button>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
+                                        <PlayerStats
+                                            key={player.id}
+                                            gameId={currentGameId}
+                                            playerId={player.id}
+                                            player={player}
+                                            initialPlayerStats={initialPlayerStats}
+                                            games={games}
+                                            updateStat={updateStat}
+                                        />
                                     ))}
                                 </CardContent>
                             </Card>
@@ -331,132 +251,29 @@ export default function VolleyballStatTracker() {
 
                     {/* Players Tab Content */}
                     <TabsContent value="players" className="space-y-4">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Add New Player</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                {editingPlayerId ? (
-                                    // Render inputs for editing the player
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <input
-                                            type="text"
-                                            placeholder="Player Name"
-                                            value={newPlayerName}
-                                            onChange={(e) => setNewPlayerName(e.target.value)}
-                                            className="p-2 border rounded"
-                                        />
-                                        <input
-                                            type="text"
-                                            placeholder="Player Number"
-                                            value={newPlayerNumber}
-                                            onChange={(e) => setNewPlayerNumber(e.target.value)}
-                                            className="p-2 border rounded"
-                                        />
-                                        <Button
-                                            onClick={() => updatePlayer(editingPlayerId, newPlayerName, newPlayerNumber)} // Save
-                                            className="col-span-2"
-                                        >
-                                            <Save className="mr-2 h-4 w-4" />
-                                            Save
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    // Render inputs for adding a new player
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <input
-                                            type="text"
-                                            placeholder="Player Name"
-                                            value={newPlayerName}
-                                            onChange={(e) => setNewPlayerName(e.target.value)}
-                                            className="p-2 border rounded"
-                                        />
-                                        <input
-                                            type="text"
-                                            placeholder="Player Number"
-                                            value={newPlayerNumber}
-                                            onChange={(e) => setNewPlayerNumber(e.target.value)}
-                                            className="p-2 border rounded"
-                                        />
-                                        <Button onClick={addPlayer} className="col-span-2">
-                                            <PlusCircle className="mr-2 h-4 w-4" />
-                                            Add Player
-                                        </Button>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Players</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <AnimatePresence>
-                                    {players.map((player) => (
-                                        <motion.div
-                                            key={player.id}
-                                            variants={listItemVariants}
-                                            initial="hidden"
-                                            animate="visible"
-                                            exit="exit"
-                                            className="flex items-center justify-between p-2 border-b last:border-0"
-                                        >
-                                            <div>
-                                                {player.name} (#{player.number})
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => {
-                                                        setEditingPlayerId(player.id);
-                                                        setNewPlayerName(player.name);
-                                                        setNewPlayerNumber(player.number)
-                                                    }}
-                                                >
-                                                    <Edit className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    onClick={() => deletePlayer(player.id)}
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </motion.div>
-                                    ))}
-                                </AnimatePresence>
-                            </CardContent>
-                        </Card>
+                        <PlayerForm
+                            editingPlayerId={editingPlayerId}
+                            setEditingPlayerId={setEditingPlayerId}
+                            newPlayerName={newPlayerName}
+                            setNewPlayerName={setNewPlayerName}
+                            newPlayerNumber={newPlayerNumber}
+                            setNewPlayerNumber={setNewPlayerNumber}
+                            addPlayer={addPlayer}
+                            updatePlayer={updatePlayer}
+                        />
+                        <PlayerList
+                            players={players}
+                            editingPlayerId={editingPlayerId}
+                            setEditingPlayerId={setEditingPlayerId}
+                            setNewPlayerName={setNewPlayerName}
+                            setNewPlayerNumber={setNewPlayerNumber}
+                            deletePlayer={deletePlayer}
+                        />
                     </TabsContent>
 
                     {/* Stats Tab Content */}
                     <TabsContent value="stats" className="space-y-4">
-                        <Card>
-                            <CardHeader>
-                                 <CardTitle>Player Stats Overview</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                {players.map((player) => {
-                                    const totalStats = getPlayerTotalStats(player.id);
-                                    return (
-                                        <div key={player.id} className="mb-6 p-4 border rounded">
-                                             <h3 className="text-lg font-semibold">{player.name} (#{player.number})</h3>
-                                            <div className="grid grid-cols-3 gap-2">
-                                                {Object.entries(totalStats).map(([stat, value]) => (
-                                                    <div key={stat} className="flex items-center justify-between">
-                                                        <span>{stat.charAt(0).toUpperCase() + stat.slice(1)}:</span>
-                                                        <span>{value}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </CardContent>
-                        </Card>
+                        <StatsOverview players={players} games={games} />
                     </TabsContent>
                 </Tabs>
             </main>
