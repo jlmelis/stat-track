@@ -56,25 +56,22 @@ const initialPlayerStats: PlayerStats = {
 
 export default function VolleyballStatTracker() {
     const { theme, setTheme } = useTheme();
-    const [players, setPlayers] = useState<Player[]>(() => {
-        if (typeof window !== 'undefined') {
-            const savedPlayers = localStorage.getItem('volleyballPlayers');
-            return savedPlayers ? JSON.parse(savedPlayers) : [];
-        }
-        return [];
-    });
-    const [games, setGames] = useState<Game[]>(() => {
-        if (typeof window !== 'undefined') {
-            const savedGames = localStorage.getItem('volleyballGames');
-            return savedGames ? JSON.parse(savedGames) : [];
-        }
-        return [];
-    });
+    const [players, setPlayers] = useState<Player[] | null>(null);
+    const [games, setGames] = useState<Game[] | null>(null);
     const [currentGameId, setCurrentGameId] = useState<string | null>(null);
     const [newPlayerName, setNewPlayerName] = useState('');
     const [newPlayerNumber, setNewPlayerNumber] = useState('');
-    // Persist state to localStorage
-     useEffect(() => {
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const savedPlayers = localStorage.getItem('volleyballPlayers');
+            const savedGames = localStorage.getItem('volleyballGames');
+            setPlayers(savedPlayers ? JSON.parse(savedPlayers) : []);
+            setGames(savedGames ? JSON.parse(savedGames) : []);
+        }
+    }, []);
+
+    useEffect(() => {
         if (typeof window !== 'undefined') {
             localStorage.setItem('volleyballPlayers', JSON.stringify(players));
             localStorage.setItem('volleyballGames', JSON.stringify(games));
@@ -83,13 +80,15 @@ export default function VolleyballStatTracker() {
 
     // Helper functions
     const createNewGame = useCallback((date: string, opponent: string) => {
+        if (!players) return;
+
         const newGame: Game = {
             id: crypto.randomUUID(),
             date: date,
             opponent: opponent,
             playerStats: Object.fromEntries(players.map(p => [p.id, { ...initialPlayerStats }])),
         };
-        setGames(prevGames => [...prevGames, newGame]);
+        setGames(prevGames => [...(prevGames || []), newGame]);
         setCurrentGameId(newGame.id);
     }, [players]);
 
@@ -101,13 +100,13 @@ export default function VolleyballStatTracker() {
             name: newPlayerName,
             number: newPlayerNumber,
         };
-        setPlayers(prevPlayers => [...prevPlayers, newPlayer]);
+        setPlayers(prevPlayers => [...(prevPlayers || []), newPlayer]);
         setNewPlayerName('');
         setNewPlayerNumber('');
     }, [newPlayerName, newPlayerNumber]);
 
     const deleteGame = (id: string) => {
-        setGames(prevGames => prevGames.filter(g => g.id !== id));
+        setGames(prevGames => prevGames ? prevGames.filter(g => g.id !== id) : []);
         if (currentGameId === id) {
             setCurrentGameId(null); // Reset current game if it's deleted
         }
@@ -115,7 +114,7 @@ export default function VolleyballStatTracker() {
 
     const updateStat = (gameId: string, playerId: string, stat: string | number | symbol, value: number) => {
         setGames(prevGames =>
-            prevGames.map(game =>
+            prevGames ? prevGames.map(game =>
                 game.id === gameId
                     ? {
                         ...game,
@@ -128,7 +127,7 @@ export default function VolleyballStatTracker() {
                         },
                     }
                     : game
-            )
+            ) : []
         );
     };
 
@@ -173,20 +172,22 @@ export default function VolleyballStatTracker() {
                     <TabsContent value="games" className="space-y-4">
                         <GameForm onCreateGame={createNewGame} />
 
-                        <GameList 
+                        {games && (
+                            <GameList
                                 games={games}
                                 setCurrentGameId={setCurrentGameId}
                                 deleteGame={deleteGame}
                             />
+                        )}
 
                         {/* Display Stats for Selected Game */}
                         {currentGameId && (
                             <Card>
                                 <CardHeader>
-                                 <CardTitle>Game Stats: {games.find(g => g.id === currentGameId)?.date} - {games.find(g => g.id === currentGameId)?.opponent}</CardTitle>
+                                    <CardTitle>Game Stats: {games?.find(g => g.id === currentGameId)?.date || ''} - {games?.find(g => g.id === currentGameId)?.opponent || ''}</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    {players.map((player) => (
+                                    {players && games && players.map((player) => (
                                         <PlayerStats
                                             key={player.id}
                                             gameId={currentGameId}
@@ -210,16 +211,18 @@ export default function VolleyballStatTracker() {
                             setNewPlayerNumber={setNewPlayerNumber}
                             addPlayer={addPlayer}
                         />
-                        <PlayerList
-                            players={players}
-                            setNewPlayerName={setNewPlayerName}
-                            setNewPlayerNumber={setNewPlayerNumber}
-                        />
+                        {players && (
+                            <PlayerList
+                                players={players}
+                                setNewPlayerName={setNewPlayerName}
+                                setNewPlayerNumber={setNewPlayerNumber}
+                            />
+                        )}
                     </TabsContent>
 
                     {/* Stats Tab Content */}
                     <TabsContent value="stats" className="space-y-4">
-                        <StatsOverview players={players} games={games} />
+                        {players && games && <StatsOverview players={players} games={games} />}
                     </TabsContent>
                 </Tabs>
             </main>
