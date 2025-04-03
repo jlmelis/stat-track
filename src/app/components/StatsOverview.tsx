@@ -1,6 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import EditPlayerStatsModal from "./EditPlayerStatsModal";
 
 interface Game {
     id: string;
@@ -32,7 +33,12 @@ interface StatsOverviewProps {
     games: Game[];
 }
 
+import { useState } from "react";
+import type { StatTrackerTypes } from '@/lib/types';
+
 const StatsOverview: React.FC<StatsOverviewProps> = ({ players, games }: StatsOverviewProps) => {
+    const [expandedPlayers, setExpandedPlayers] = useState<string[]>([]);
+    const [editPlayerId, setEditPlayerId] = useState<string | null>(null);
     const initialPlayerStats: PlayerStats = {
         kills: 0,
         blocks: 0,
@@ -66,16 +72,45 @@ const StatsOverview: React.FC<StatsOverviewProps> = ({ players, games }: StatsOv
                 {players.map((player) => {
                     const totalStats = getPlayerTotalStats(player.id);
                     return (
-                        <div key={player.id} className="mb-6 p-4 border rounded">
-                            <h3 className="text-lg font-semibold">{player.name} (#{player.number})</h3>
-                            <div className="grid grid-cols-3 gap-2">
-                                {Object.entries(totalStats).map(([stat, value]) => (
-                                    <div key={stat} className="flex items-center justify-between">
-                                        <span>{stat.charAt(0).toUpperCase() + stat.slice(1)}:</span>
-                                        <span>{value}</span>
-                                    </div>
-                                ))}
+                        <div
+                            key={player.id}
+                            className="mb-6 p-4 border rounded cursor-pointer"
+                            onClick={() => {
+                                setExpandedPlayers((prev) =>
+                                    prev.includes(player.id) ? prev.filter((id) => id !== player.id) : [...prev, player.id]
+                                );
+                            }}
+                        >
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-semibold">{player.name} (#{player.number})</h3>
+                                <button onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditPlayerId(player.id);
+                                }} className="text-gray-500 hover:text-gray-700">
+                                    Edit
+                                </button>
                             </div>
+                            {expandedPlayers.includes(player.id) && (
+                                <div className="grid grid-cols-3 gap-2 mt-2">
+                                    {Object.entries(totalStats).map(([stat, value]) => (
+                                        <div key={stat} className="flex items-center justify-between">
+                                            <span>{stat.charAt(0).toUpperCase() + stat.slice(1)}:</span>
+                                            <span>{value}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {editPlayerId === player.id && (
+                                <EditPlayerStatsModal
+                                    player={players.find(p => p.id === player.id) as StatTrackerTypes.Player}
+                                    isOpen={editPlayerId === player.id}
+                                    onClose={() => setEditPlayerId(null)}
+                                    onUpdateStat={(playerId, statType, newValue) => {
+                                        // TODO: Implement the onUpdateStat function
+                                        console.log(`Update stat ${statType} for player ${playerId} to ${newValue}`);
+                                    }}
+                                />
+                            )}
                         </div>
                     );
                 })}

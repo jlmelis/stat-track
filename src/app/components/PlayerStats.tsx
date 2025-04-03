@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { StatTrackerTypes } from '@/lib/types';
-import { Pencil, Eye } from 'lucide-react';
+import { Pencil, Eye, ChevronUp, ChevronDown } from 'lucide-react';
 import EditPlayerStatsModal from './EditPlayerStatsModal';
 
 // Map display names to internal keys
@@ -28,7 +28,7 @@ interface PlayerStatsProps {
 interface PlayerStatsCardProps {
     player: StatTrackerTypes.Player;
     onUpdateStat: (playerId: string, statType: keyof StatTrackerTypes.PlayerStats, newValue: number) => void;
- }
+}
 
 function PlayerStatsCard({ player, onUpdateStat }: PlayerStatsCardProps) {
     // Function to handle incrementing a stat
@@ -45,17 +45,6 @@ function PlayerStatsCard({ player, onUpdateStat }: PlayerStatsCardProps) {
 
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 transition-shadow hover:shadow-lg">
-            {/* Player Info Header */}
-            <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
-                    {player.name}
-                    <span className="text-lg font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-gray-700 px-3 py-1 rounded-full ml-2">
-                        #{player.number}
-                    </span>
-                    <Pencil className="h-4 w-4 text-gray-500 hover:text-gray-400 cursor-pointer" aria-label="Edit" />
-                </h3>
-            </div>
-
             {/* Stats Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {STAT_DISPLAY_NAMES.map((displayName) => {
@@ -77,6 +66,8 @@ function PlayerStatsCard({ player, onUpdateStat }: PlayerStatsCardProps) {
 
 
 const PlayerStats: React.FC<PlayerStatsProps> = ({ gameId, player, initialPlayerStats, games, updateStat }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     // This intermediate onUpdateStat is no longer strictly necessary as the types align,
     // but we keep the PlayerStatsCard separate for structure.
     // We need to ensure the statType passed from PlayerStatsCard is correctly typed.
@@ -88,19 +79,30 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ gameId, player, initialPlayer
     const game = games.find((g: StatTrackerTypes.Game) => g.id === gameId);
     const playerStats = game?.playerStats[player.id] || initialPlayerStats;
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
-
     return (
         <div>
-            <div onClick={() => setIsModalOpen(true)}>
-                <PlayerStatsCard player={{...player, stats: playerStats}} onUpdateStat={onUpdateStat} />
+            <div className="mb-6 p-4 border rounded cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+                <h3 className="text-lg font-semibold flex items-center"><span className="text-lg font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-gray-700 px-3 py-1 rounded-full mr-1">#{player.number}</span>{player.name}
+                <div className="flex items-center ml-auto">
+                    <Pencil className="h-4 w-4 text-gray-500 hover:text-gray-400 cursor-pointer ml-2" aria-label="Edit" onClick={() => setIsModalOpen(true)} />
+                    {isExpanded ? (
+                        <ChevronUp className="h-4 w-4 text-gray-500 hover:text-gray-400 cursor-pointer ml-2" onClick={() => setIsExpanded(false)} />
+                    ) : (
+                        <ChevronDown className="h-4 w-4 text-gray-500 hover:text-gray-400 cursor-pointer ml-2" onClick={() => setIsExpanded(true)} />
+                    )}
+                </div></h3>
+                {isExpanded && (
+                    <PlayerStatsCard player={{...player, stats: playerStats}} onUpdateStat={onUpdateStat} />
+                )}
             </div>
-            <EditPlayerStatsModal
-                player={{...player, stats: playerStats}}
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onUpdateStat={onUpdateStat}
-            />
+            {isExpanded && (
+                <EditPlayerStatsModal
+                    player={{...player, stats: playerStats}}
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    onUpdateStat={onUpdateStat}
+                />
+            )}
         </div>
     );
 };
