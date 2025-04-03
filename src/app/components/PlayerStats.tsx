@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { StatTrackerTypes } from '@/lib/types';
+import { Pencil, Eye } from 'lucide-react';
 
 // Map display names to internal keys
 const STAT_TYPE_MAP: { [key: string]: keyof StatTrackerTypes.PlayerStats } = {
@@ -23,7 +24,14 @@ interface PlayerStatsProps {
     updateStat: (gameId: string, playerId: string, stat: keyof StatTrackerTypes.PlayerStats, value: number) => void; // Match the updated type
 }
 
-function PlayerStatsCard({ player, onUpdateStat }: { player: StatTrackerTypes.Player, onUpdateStat: (playerId: string, statType: keyof StatTrackerTypes.PlayerStats, newValue: number) => void }) {
+interface PlayerStatsCardProps {
+    player: StatTrackerTypes.Player;
+    onUpdateStat: (playerId: string, statType: keyof StatTrackerTypes.PlayerStats, newValue: number) => void;
+   isReadOnly: boolean;
+   setIsReadOnly: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+function PlayerStatsCard({ player, onUpdateStat, isReadOnly, setIsReadOnly }: PlayerStatsCardProps) {
     // Function to handle incrementing a stat
     const handleIncrement = (statKey: keyof StatTrackerTypes.PlayerStats) => {
         const currentValue = player.stats[statKey] ?? 0; // Use nullish coalescing for safety
@@ -40,10 +48,19 @@ function PlayerStatsCard({ player, onUpdateStat }: { player: StatTrackerTypes.Pl
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 transition-shadow hover:shadow-lg">
             {/* Player Info Header */}
             <div className="flex justify-between items-center mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{player.name}</h3>
-                <span className="text-lg font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-gray-700 px-3 py-1 rounded-full">
-                    #{player.number}
-                </span>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
+                    {player.name}
+                    <span className="text-lg font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-gray-700 px-3 py-1 rounded-full ml-2">
+                        #{player.number}
+                    </span>
+                    <button onClick={() => setIsReadOnly(!isReadOnly)} className="focus:outline-none">
+                        {isReadOnly ? (
+                            <Pencil className="h-4 w-4 text-gray-500 hover:text-gray-400" aria-label="Edit" />
+                        ) : (
+                            <Eye className="h-4 w-4 text-gray-500 hover:text-gray-400" aria-label="View" />
+                        )}
+                    </button>
+                </h3>
             </div>
 
             {/* Stats Grid */}
@@ -54,29 +71,35 @@ function PlayerStatsCard({ player, onUpdateStat }: { player: StatTrackerTypes.Pl
                     return (
                         <div key={statKey} className="text-center p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
                             <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">{displayName}</p>
-                            <div className="flex items-center justify-center space-x-3">
-                                {/* Decrement Button */}
-                                <button
-                                    onClick={() => handleDecrement(statKey)} // Use statKey
-                                    className="px-2 py-0.5 bg-red-200 dark:bg-red-700 text-red-800 dark:text-red-100 rounded hover:bg-red-300 dark:hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 disabled:opacity-50"
-                                    disabled={statValue <= 0} // Disable if stat is 0
-                                    aria-label={`Decrease ${displayName} for ${player.name}`}
-                                >
-                                    -
-                                </button>
-                                {/* Stat Value */}
+                            {isReadOnly ? (
                                 <span className="text-xl font-semibold text-gray-800 dark:text-gray-100 w-8 text-center">
                                     {statValue}
                                 </span>
-                                {/* Increment Button */}
-                                <button
-                                    onClick={() => handleIncrement(statKey)} // Use statKey
-                                    className="px-2 py-0.5 bg-green-200 dark:bg-green-700 text-green-800 dark:text-green-100 rounded hover:bg-green-300 dark:hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
-                                    aria-label={`Increase ${displayName} for ${player.name}`}
-                                >
-                                    +
-                                </button>
-                            </div>
+                            ) : (
+                                <div className="flex items-center justify-center space-x-3">
+                                    {/* Decrement Button */}
+                                    <button
+                                        onClick={() => handleDecrement(statKey)} // Use statKey
+                                        className="px-2 py-0.5 bg-red-200 dark:bg-red-700 text-red-800 dark:text-red-100 rounded hover:bg-red-300 dark:hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400 disabled:opacity-50"
+                                        disabled={statValue <= 0} // Disable if stat is 0 or isReadOnly is true
+                                        aria-label={`Decrease ${displayName} for ${player.name}`}
+                                    >
+                                        -
+                                    </button>
+                                    {/* Stat Value */}
+                                    <span className="text-xl font-semibold text-gray-800 dark:text-gray-100 w-8 text-center">
+                                        {statValue}
+                                    </span>
+                                    {/* Increment Button */}
+                                    <button
+                                        onClick={() => handleIncrement(statKey)} // Use statKey
+                                        className="px-2 py-0.5 bg-green-200 dark:bg-green-700 text-green-800 dark:text-green-100 rounded hover:bg-green-300 dark:hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
+                                        aria-label={`Increase ${displayName} for ${player.name}`}
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     );
                 })}
@@ -84,6 +107,7 @@ function PlayerStatsCard({ player, onUpdateStat }: { player: StatTrackerTypes.Pl
         </div>
     );
 }
+
 
 const PlayerStats: React.FC<PlayerStatsProps> = ({ gameId, player, initialPlayerStats, games, updateStat }) => {
     // This intermediate onUpdateStat is no longer strictly necessary as the types align,
@@ -97,8 +121,12 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ gameId, player, initialPlayer
     const game = games.find((g: StatTrackerTypes.Game) => g.id === gameId);
     const playerStats = game?.playerStats[player.id] || initialPlayerStats;
 
+    const [isReadOnly, setIsReadOnly] = useState(true);
+
     return (
-        <PlayerStatsCard player={{...player, stats: playerStats}} onUpdateStat={onUpdateStat} />
+        <div>
+            <PlayerStatsCard player={{...player, stats: playerStats}} onUpdateStat={onUpdateStat} isReadOnly={isReadOnly} setIsReadOnly={setIsReadOnly}/>
+        </div>
     );
 };
 
