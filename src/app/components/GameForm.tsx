@@ -1,28 +1,28 @@
 import { useState } from 'react';
+import { Save } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { PlusCircle } from 'lucide-react';
 
 interface GameFormProps {
     onCreateGame: (date: string, opponent: string) => void;
+    onClose: () => void;
 }
 
-const GameForm: React.FC<GameFormProps> = ({ onCreateGame }) => {
+const GameForm: React.FC<GameFormProps> = ({ onCreateGame, onClose }) => {
     const [newGameDate, setNewGameDate] = useState('');
     const [newGameOpponent, setNewGameOpponent] = useState('');
 
     const handleCreateGame = () => {
         if (!newGameDate || !newGameOpponent) return;
         onCreateGame(newGameDate, newGameOpponent);
-        setNewGameDate('');
-        setNewGameOpponent('');
-    };
+       setNewGameDate('');
+       setNewGameOpponent('');
+       onClose();
+   };
 
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>Create New Game</CardTitle>
-            </CardHeader>
             <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                     <input
@@ -41,8 +41,7 @@ const GameForm: React.FC<GameFormProps> = ({ onCreateGame }) => {
                     />
                 </div>
                 <Button onClick={handleCreateGame} className="w-full">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Create Game
+                    Create
                 </Button>
             </CardContent>
         </Card>

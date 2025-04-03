@@ -4,6 +4,16 @@ import { useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Plus, List } from "lucide-react";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Moon, Sun, Monitor } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useState, useEffect } from 'react';
@@ -34,6 +44,8 @@ export default function VolleyballStatTracker() {
     const [players, setPlayers] = useState<StatTrackerTypes.Player[] | null>(null);
     const [games, setGames] = useState<StatTrackerTypes.Game[] | null>(null);
     const [currentGameId, setCurrentGameId] = useState<string | null>(null);
+    const [showGameList, setShowGameList] = useState(true);
+    const [open, setOpen] = useState(false);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -147,18 +159,40 @@ export default function VolleyballStatTracker() {
 
                     {/* Games Tab Content */}
                     <TabsContent value="games" className="space-y-4">
-                        <GameForm onCreateGame={createNewGame} />
+                        <Dialog open={open} onOpenChange={setOpen}>
+                            <DialogTrigger asChild>
+                                <Button variant="secondary" className="mr-2">
+                                    <Plus className="h-4 w-4" />
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[425px]">
+                               <DialogHeader>
+                                   <DialogTitle>Create New Game</DialogTitle>
+                               </DialogHeader>
+                               <GameForm onCreateGame={createNewGame} onClose={() => setOpen(false)} />
+                           </DialogContent>
+                        </Dialog>
 
-                        {games && (
+                        {showGameList && games && (
                             <GameList
                                 games={games}
-                                setCurrentGameId={setCurrentGameId}
+                                setCurrentGameId={(id: string | null) => {
+                                    setCurrentGameId(id);
+                                    setShowGameList(false);
+                                }}
                                 deleteGame={deleteGame}
                             />
                         )}
 
-                        {/* Display Stats for Selected Game */}
-                        {currentGameId && (
+                    {/* Display Stats for Selected Game */}
+                    {!showGameList && currentGameId && (
+                        <>
+                            <Button variant="secondary" className="mr-2" onClick={() => {
+                                setCurrentGameId(null);
+                                setShowGameList(true);
+                            }}>
+                                <List className="h-4 w-4" />
+                            </Button>
                             <Card>
                                 <CardHeader>
                                     <CardTitle>Game Stats: {games?.find(g => g.id === currentGameId)?.date || ''} - {games?.find(g => g.id === currentGameId)?.opponent || ''}</CardTitle>
@@ -176,7 +210,8 @@ export default function VolleyballStatTracker() {
                                     ))}
                                 </CardContent>
                             </Card>
-                        )}
+                        </>
+                    )}
                     </TabsContent>
 
                     {/* Players Tab Content */}
