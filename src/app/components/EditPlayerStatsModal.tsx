@@ -38,8 +38,8 @@ const EditPlayerStatsModal: React.FC<EditPlayerStatsModalProps> = ({ player, isO
     const STAT_DISPLAY_NAMES = Object.keys(STAT_TYPE_MAP); // Get display names for rendering
 
     return (
-        <div className="fixed inset-0 bg-white bg-opacity-50 overflow-y-auto h-full w-full">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div className="fixed inset-0 bg-[rgba(209,213,219,0.6)] overflow-y-auto h-full w-full" onClick={onClose}>
+            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" onClick={(e) => e.stopPropagation()}>
                 <div className="mt-3 text-center">
                     <h3 className="text-lg leading-6 font-medium text-gray-900">Edit Player Stats</h3>
                     <h4 className="text-md leading-6 font-medium text-gray-700">{player.name} #{player.number}</h4>
