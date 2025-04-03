@@ -3,7 +3,7 @@ export namespace StatTrackerTypes {
         id: string;
         name: string;
         number: string;
-        stats: PlayerStats; // Make stats required
+        stats: PlayerStats;
     }
 
     export interface Game {

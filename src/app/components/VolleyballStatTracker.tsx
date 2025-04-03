@@ -8,12 +8,10 @@ import { Plus, List } from "lucide-react";
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Moon, Sun, Monitor } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useState, useEffect } from 'react';
@@ -76,7 +74,7 @@ export default function VolleyballStatTracker() {
         };
         setGames(prevGames => [...(prevGames || []), newGame]);
         setCurrentGameId(newGame.id);
-    }, [players, initialPlayerStats]);
+    }, [players]);
 
     const addPlayer = useCallback((name: string, number: string) => {
         if (!name.trim() || !number.trim()) return;

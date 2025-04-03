@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { StatTrackerTypes } from '@/lib/types';
-import { Pencil, Eye, ChevronUp, ChevronDown } from 'lucide-react';
+import { Pencil, ChevronUp, ChevronDown } from 'lucide-react';
 import EditPlayerStatsModal from './EditPlayerStatsModal';
 
 // Map display names to internal keys
@@ -27,22 +27,9 @@ interface PlayerStatsProps {
 
 interface PlayerStatsCardProps {
     player: StatTrackerTypes.Player;
-    onUpdateStat: (playerId: string, statType: keyof StatTrackerTypes.PlayerStats, newValue: number) => void;
 }
 
-function PlayerStatsCard({ player, onUpdateStat }: PlayerStatsCardProps) {
-    // Function to handle incrementing a stat
-    const handleIncrement = (statKey: keyof StatTrackerTypes.PlayerStats) => {
-        const currentValue = player.stats[statKey] ?? 0; // Use nullish coalescing for safety
-        onUpdateStat(player.id, statKey, currentValue + 1);
-    };
-
-    // Function to handle decrementing a stat (ensuring it doesn't go below 0)
-    const handleDecrement = (statKey: keyof StatTrackerTypes.PlayerStats) => {
-        const currentValue = player.stats[statKey] ?? 0; // Use nullish coalescing for safety
-        onUpdateStat(player.id, statKey, Math.max(0, currentValue - 1));
-    };
-
+function PlayerStatsCard({ player }: PlayerStatsCardProps) {
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-5 transition-shadow hover:shadow-lg">
             {/* Stats Grid */}
@@ -68,12 +55,6 @@ function PlayerStatsCard({ player, onUpdateStat }: PlayerStatsCardProps) {
 const PlayerStats: React.FC<PlayerStatsProps> = ({ gameId, player, initialPlayerStats, games, updateStat }) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    // This intermediate onUpdateStat is no longer strictly necessary as the types align,
-    // but we keep the PlayerStatsCard separate for structure.
-    // We need to ensure the statType passed from PlayerStatsCard is correctly typed.
-    const onUpdateStat = (playerId: string, statType: keyof StatTrackerTypes.PlayerStats, newValue: number) => {
-        updateStat(gameId, playerId, statType, newValue);
-    };
 
     // Find the specific game to get the correct stats for this player in this game
     const game = games.find((g: StatTrackerTypes.Game) => g.id === gameId);
@@ -95,7 +76,7 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ gameId, player, initialPlayer
                     )}
                 </div></h3>
                 { isExpanded && (
-                    <PlayerStatsCard player={{...player, stats: playerStats}} onUpdateStat={onUpdateStat} />
+                    <PlayerStatsCard player={{...player, stats: playerStats}} />
                 )}
             </div>
             
@@ -103,7 +84,8 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ gameId, player, initialPlayer
                 player={{...player, stats: playerStats}}
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                onUpdateStat={onUpdateStat}
+                onUpdateStat={updateStat}
+                gameId={gameId}
             />
         </div>
     );

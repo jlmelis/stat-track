@@ -9,22 +9,23 @@ import {
 } from "@/components/ui/dialog"
 
 interface EditPlayerStatsModalProps {
-    player: StatTrackerTypes.Player;
     isOpen: boolean;
     onClose: () => void;
-    onUpdateStat: (playerId: string, statType: keyof StatTrackerTypes.PlayerStats, newValue: number) => void;
+    player: StatTrackerTypes.Player;
+    onUpdateStat: (gameId: string, playerId: string, statType: keyof StatTrackerTypes.PlayerStats, newValue: number) => void;
+    gameId: string;
 }
 
-const EditPlayerStatsModal: React.FC<EditPlayerStatsModalProps> = ({ player, isOpen, onClose, onUpdateStat }) => {
+const EditPlayerStatsModal: React.FC<EditPlayerStatsModalProps> = ({ player, isOpen, onClose, onUpdateStat, gameId }) => {
 
     const handleIncrement = (statKey: keyof StatTrackerTypes.PlayerStats) => {
         const currentValue = player.stats[statKey] ?? 0;
-        onUpdateStat(player.id, statKey, currentValue + 1);
+        onUpdateStat(gameId, player.id, statKey, currentValue + 1);
     };
 
     const handleDecrement = (statKey: keyof StatTrackerTypes.PlayerStats) => {
         const currentValue = player.stats[statKey] ?? 0;
-        onUpdateStat(player.id, statKey, Math.max(0, currentValue - 1));
+        onUpdateStat(gameId, player.id, statKey, Math.max(0, currentValue - 1));
     };
 
     // Map display names to internal keys

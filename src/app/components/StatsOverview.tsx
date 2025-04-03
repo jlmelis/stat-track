@@ -32,9 +32,6 @@ interface StatsOverviewProps {
     games: Game[];
 }
 
-import { useState } from "react";
-import type { StatTrackerTypes } from '@/lib/types';
-
     const StatsOverview: React.FC<StatsOverviewProps> = ({ players, games }: StatsOverviewProps) => {
     const initialPlayerStats: PlayerStats = {
         kills: 0,

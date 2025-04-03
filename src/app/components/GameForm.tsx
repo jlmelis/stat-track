@@ -1,8 +1,6 @@
 import { useState } from 'react';
-import { Save } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { PlusCircle } from 'lucide-react';
 
 interface GameFormProps {
     onCreateGame: (date: string, opponent: string) => void;
