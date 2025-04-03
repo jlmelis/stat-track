@@ -84,25 +84,27 @@ const PlayerStats: React.FC<PlayerStatsProps> = ({ gameId, player, initialPlayer
             <div className="mb-6 p-4 border rounded cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
                 <h3 className="text-lg font-semibold flex items-center"><span className="text-lg font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-gray-700 px-3 py-1 rounded-full mr-1">#{player.number}</span>{player.name}
                 <div className="flex items-center ml-auto">
-                    <Pencil className="h-4 w-4 text-gray-500 hover:text-gray-400 cursor-pointer ml-2" aria-label="Edit" onClick={() => setIsModalOpen(true)} />
+                    <Pencil className="h-4 w-4 text-gray-500 hover:text-gray-400 cursor-pointer ml-2" aria-label="Edit" onClick={(e) => {
+                        e.stopPropagation();
+                        setIsModalOpen(true);
+                    }} />
                     {isExpanded ? (
                         <ChevronUp className="h-4 w-4 text-gray-500 hover:text-gray-400 cursor-pointer ml-2" onClick={() => setIsExpanded(false)} />
                     ) : (
                         <ChevronDown className="h-4 w-4 text-gray-500 hover:text-gray-400 cursor-pointer ml-2" onClick={() => setIsExpanded(true)} />
                     )}
                 </div></h3>
-                {isExpanded && (
+                { isExpanded && (
                     <PlayerStatsCard player={{...player, stats: playerStats}} onUpdateStat={onUpdateStat} />
                 )}
             </div>
-            {isExpanded && (
-                <EditPlayerStatsModal
-                    player={{...player, stats: playerStats}}
-                    isOpen={isModalOpen}
-                    onClose={() => setIsModalOpen(false)}
-                    onUpdateStat={onUpdateStat}
-                />
-            )}
+            
+            <EditPlayerStatsModal
+                player={{...player, stats: playerStats}}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onUpdateStat={onUpdateStat}
+            />
         </div>
     );
 };
