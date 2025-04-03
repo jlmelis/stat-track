@@ -10,64 +10,38 @@ import { useState, useEffect } from 'react';
 import GameForm from './GameForm';
 import GameList from './GameList';
 import PlayerForm from './PlayerForm';
-import PlayerStats from './PlayerStats';
 import PlayerList from './PlayerList';
 import StatsOverview from './StatsOverview';
+import PlayerStats from './PlayerStats';
+import type { StatTrackerTypes } from '@/lib/types';
 
-// Define the types
-interface Player {
-    id: string;
-    name: string;
-    number: string;
-}
-
-interface Game {
-    id: string;
-    date: string;
-    opponent: string;
-    playerStats: { [playerId: string]: PlayerStats };
-}
-
-interface PlayerStats {
-    kills: number;
-    blocks: number;
-    aces: number;
-    serves: number;
-    passes: number;
-    sets: number;
-    digs: number;
-    assists: number;
-    errors: number;
-}
-
-const initialPlayerStats: PlayerStats = {
+const initialPlayerStats: StatTrackerTypes.PlayerStats = {
     kills: 0,
+    errors: 0,
+    assists: 0,
+    digs: 0,
     blocks: 0,
     aces: 0,
     serves: 0,
     passes: 0,
     sets: 0,
-    digs: 0,
-    assists: 0,
-    errors: 0,
 };
 
 // Animation Variants
 
 export default function VolleyballStatTracker() {
     const { theme, setTheme } = useTheme();
-    const [players, setPlayers] = useState<Player[] | null>(null);
-    const [games, setGames] = useState<Game[] | null>(null);
+    const [players, setPlayers] = useState<StatTrackerTypes.Player[] | null>(null);
+    const [games, setGames] = useState<StatTrackerTypes.Game[] | null>(null);
     const [currentGameId, setCurrentGameId] = useState<string | null>(null);
-    const [newPlayerName, setNewPlayerName] = useState('');
-    const [newPlayerNumber, setNewPlayerNumber] = useState('');
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const savedPlayers = localStorage.getItem('volleyballPlayers');
             const savedGames = localStorage.getItem('volleyballGames');
+            const parsedGames = savedGames ? JSON.parse(savedGames) : [];
             setPlayers(savedPlayers ? JSON.parse(savedPlayers) : []);
-            setGames(savedGames ? JSON.parse(savedGames) : []);
+            setGames(parsedGames);
         }
     }, []);
 
@@ -82,53 +56,56 @@ export default function VolleyballStatTracker() {
     const createNewGame = useCallback((date: string, opponent: string) => {
         if (!players) return;
 
-        const newGame: Game = {
+        const newGame: StatTrackerTypes.Game = {
             id: crypto.randomUUID(),
             date: date,
             opponent: opponent,
-            playerStats: Object.fromEntries(players.map(p => [p.id, { ...initialPlayerStats }])),
+            playerStats: Object.fromEntries(players.map(p => [p.id, { ...initialPlayerStats }])), // Ensure copies here too
         };
         setGames(prevGames => [...(prevGames || []), newGame]);
         setCurrentGameId(newGame.id);
-    }, [players]);
+    }, [players, initialPlayerStats]);
 
-    const addPlayer = useCallback(() => {
-        if (!newPlayerName.trim() || !newPlayerNumber.trim()) return;
+    const addPlayer = useCallback((name: string, number: string) => {
+        if (!name.trim() || !number.trim()) return;
 
-        const newPlayer: Player = {
+        const newPlayer: StatTrackerTypes.Player = {
             id: crypto.randomUUID(),
-            name: newPlayerName,
-            number: newPlayerNumber,
+            name: name,
+            number: number,
+            stats: { ...initialPlayerStats }, // Create a copy
         };
         setPlayers(prevPlayers => [...(prevPlayers || []), newPlayer]);
-        setNewPlayerName('');
-        setNewPlayerNumber('');
-    }, [newPlayerName, newPlayerNumber]);
+    }, []);
 
     const deleteGame = (id: string) => {
-        setGames(prevGames => prevGames ? prevGames.filter(g => g.id !== id) : []);
+        setGames(prevGames => (prevGames ? prevGames.filter(g => g.id !== id) : null));
         if (currentGameId === id) {
             setCurrentGameId(null); // Reset current game if it's deleted
         }
     };
 
-    const updateStat = (gameId: string, playerId: string, stat: string | number | symbol, value: number) => {
-        setGames(prevGames =>
-            prevGames ? prevGames.map(game =>
-                game.id === gameId
-                    ? {
-                        ...game,
-                        playerStats: {
-                            ...game.playerStats,
-                            [playerId]: {
-                                ...game.playerStats[playerId],
-                                [stat]: value,
-                            },
+    const updateStat = (gameId: string, playerId: string, stat: keyof StatTrackerTypes.PlayerStats, value: number) => {
+        setGames(prevGames => {
+            if (!prevGames) return null; // Handle case where games might be null initially
+
+            return prevGames.map(game => {
+                if (game.id === gameId) {
+                    // Ensure playerStats and the specific player's stats exist
+                    const currentPlayerStats = game.playerStats?.[playerId] ?? initialPlayerStats;
+
+                    const updatedPlayerStats = {
+                        ...game.playerStats,
+                        [playerId]: {
+                            ...currentPlayerStats,
+                            [stat]: value, // Use the provided new value
                         },
-                    }
-                    : game
-            ) : []
-        );
+                    };
+                    return { ...game, playerStats: updatedPlayerStats };
+                }
+                return game;
+            });
+        });
     };
 
     // Theme Toggle
@@ -205,17 +182,11 @@ export default function VolleyballStatTracker() {
                     {/* Players Tab Content */}
                     <TabsContent value="players" className="space-y-4">
                         <PlayerForm
-                            newPlayerName={newPlayerName}
-                            setNewPlayerName={setNewPlayerName}
-                            newPlayerNumber={newPlayerNumber}
-                            setNewPlayerNumber={setNewPlayerNumber}
-                            addPlayer={addPlayer}
+                            onAddPlayer={addPlayer}
                         />
                         {players && (
                             <PlayerList
                                 players={players}
-                                setNewPlayerName={setNewPlayerName}
-                                setNewPlayerNumber={setNewPlayerNumber}
                             />
                         )}
                     </TabsContent>

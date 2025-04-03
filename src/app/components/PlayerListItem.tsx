@@ -11,8 +11,6 @@ interface Player {
 
 interface PlayerListItemProps {
     player: Player;
-    setNewPlayerName: (name: string) => void;
-    setNewPlayerNumber: (number: string) => void;
 }
 
 const listItemVariants = {
@@ -23,8 +21,6 @@ const listItemVariants = {
 
 const PlayerListItem: React.FC<PlayerListItemProps> = ({
     player,
-    setNewPlayerName,
-    setNewPlayerNumber,
 }) => {
     return (
         <motion.div
@@ -37,18 +33,6 @@ const PlayerListItem: React.FC<PlayerListItemProps> = ({
         >
             <div>
                 {player.name} (#{player.number})
-            </div>
-            <div className="flex gap-2">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                        setNewPlayerName(player.name);
-                        setNewPlayerNumber(player.number);
-                    }}
-                >
-                    
-                </Button>
             </div>
         </motion.div>
     );

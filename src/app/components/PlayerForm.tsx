@@ -1,48 +1,57 @@
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusCircle } from 'lucide-react';
 
 interface PlayerFormProps {
-    newPlayerName: string;
-    setNewPlayerName: (name: string) => void;
-    newPlayerNumber: string;
-    setNewPlayerNumber: (number: string) => void;
-    addPlayer: () => void;
+    onAddPlayer: (name: string, number: string) => void;
 }
 
-const PlayerForm: React.FC<PlayerFormProps> = ({
-    newPlayerName,
-    setNewPlayerName,
-    newPlayerNumber,
-    setNewPlayerNumber,
-    addPlayer,
-}) => {
+const PlayerForm: React.FC<PlayerFormProps> = ({ onAddPlayer }) => {
+    const [name, setName] = useState('');
+    const [number, setNumber] = useState('');
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!name.trim() || !number.trim()) {
+            alert('Please enter both player name and number.');
+            return;
+        }
+        onAddPlayer(name, number);
+        setName('');
+        setNumber('');
+    };
+
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Add New Player</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                    <input
-                        type="text"
-                        placeholder="Player Name"
-                        value={newPlayerName}
-                        onChange={(e) => setNewPlayerName(e.target.value)}
-                        className="p-2 border rounded"
-                    />
-                    <input
-                        type="text"
-                        placeholder="Player Number"
-                        value={newPlayerNumber}
-                        onChange={(e) => setNewPlayerNumber(e.target.value)}
-                        className="p-2 border rounded"
-                    />
-                    <Button onClick={addPlayer} className="col-span-2">
+                <form onSubmit={handleSubmit}>
+                    <div className="grid grid-cols-2 gap-4">
+                        <input
+                            type="text"
+                            placeholder="Player Name"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="p-2 border rounded"
+                            required
+                        />
+                        <input
+                            type="number"
+                            placeholder="Number"
+                            value={number}
+                            onChange={(e) => setNumber(e.target.value)}
+                            className="p-2 border rounded"
+                            required
+                        />
+                    </div>
+                    <Button type="submit" className="w-full">
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Add Player
                     </Button>
-                </div>
+                </form>
             </CardContent>
         </Card>
     );

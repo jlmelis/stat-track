@@ -12,14 +12,10 @@ interface Player {
 
 interface PlayerListProps {
     players: Player[];
-    setNewPlayerName: (name: string) => void;
-    setNewPlayerNumber: (number: string) => void;
 }
 
 const PlayerList: React.FC<PlayerListProps> = ({
     players,
-    setNewPlayerName,
-    setNewPlayerNumber,
 }) => {
     return (
         <Card>
@@ -32,8 +28,6 @@ const PlayerList: React.FC<PlayerListProps> = ({
                         <PlayerListItem
                             key={player.id}
                             player={player}
-                            setNewPlayerName={setNewPlayerName}
-                            setNewPlayerNumber={setNewPlayerNumber}
                         />
                     ))}
                 </AnimatePresence>
