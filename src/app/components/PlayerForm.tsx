@@ -11,12 +11,18 @@ const PlayerForm: React.FC<PlayerFormProps> = ({ onAddPlayer }) => {
     const [name, setName] = useState('');
     const [number, setNumber] = useState('');
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!name.trim() || !number.trim()) {
             alert('Please enter both player name and number.');
             return;
         }
+
+        if (isNaN(Number(number))) {
+            alert('Please enter a valid number for the player number.');
+            return;
+        }
+
         onAddPlayer(name, number);
         setName('');
         setNumber('');
