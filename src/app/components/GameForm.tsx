@@ -22,20 +22,20 @@ const GameForm: React.FC<GameFormProps> = ({ onCreateGame, onClose }) => {
     return (
         <Card>
             <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <input
                         type="date"
                         placeholder="Date"
                         value={newGameDate}
                         onChange={(e) => setNewGameDate(e.target.value)}
-                        className="p-2 border rounded"
+                        className="w-full md:w-auto p-2 border rounded"
                     />
                     <input
                         type="text"
                         placeholder="Opponent"
                         value={newGameOpponent}
                         onChange={(e) => setNewGameOpponent(e.target.value)}
-                        className="p-2 border rounded"
+                        className="w-full md:w-auto p-2 border rounded"
                     />
                 </div>
                 <Button onClick={handleCreateGame} className="w-full">
