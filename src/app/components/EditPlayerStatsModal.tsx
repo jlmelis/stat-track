@@ -51,7 +51,7 @@ const EditPlayerStatsModal: React.FC<EditPlayerStatsModalProps> = ({ player, isO
                     <DialogTitle className="text-center">Edit Player Stats</DialogTitle>
                     <h4 className="text-md leading-6 font-medium text-gray-700 text-center">{player.name} #{player.number}</h4>
                 </DialogHeader>
-                <div className="px-7 py-3 grid grid-cols-3 gap-4">
+                <div className="px-7 py-3 grid grid-cols-2 lg:grid-cols-3 gap-4">
                     {STAT_DISPLAY_NAMES.map((displayName) => {
                         const statKey = STAT_TYPE_MAP[displayName]; // Get the internal key
                         const statValue = player.stats[statKey] ?? 0; // Get the value safely
