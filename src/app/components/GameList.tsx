@@ -19,7 +19,6 @@ interface Game {
     } };
 }
 
-
 interface GameListProps {
     games: Game[];
     setCurrentGameId: (id: string | null) => void;
@@ -28,23 +27,27 @@ interface GameListProps {
 
 const GameList: React.FC<GameListProps> = ({ games, setCurrentGameId, deleteGame }) => {
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Games</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <AnimatePresence>
-                    {games.map((game) => (
-                        <GameListItem
-                            key={game.id}
-                            game={game}
-                            setCurrentGameId={setCurrentGameId}
-                            deleteGame={deleteGame}
-                        />
-                    ))}
-                </AnimatePresence>
-            </CardContent>
-        </Card>
+        <div className="w-full flex justify-center">
+            <Card className="w-full md:w-3/4 lg:w-2/3 max-w-7xl mx-auto">
+                <CardHeader>
+                    <CardTitle>Games</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4">
+                    <AnimatePresence>
+                        <div className="flex flex-col gap-4"> {/* Vertical flexbox for smaller screens */}
+                            {games.map((game) => (
+                                <GameListItem
+                                    key={game.id}
+                                    game={game}
+                                    setCurrentGameId={setCurrentGameId}
+                                    deleteGame={deleteGame}
+                                />
+                            ))}
+                        </div>
+                    </AnimatePresence>
+                </CardContent>
+            </Card>
+        </div>
     );
 };
 

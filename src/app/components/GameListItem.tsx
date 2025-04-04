@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { motion } from 'framer-motion';
-import { Trash2, ListChecks } from 'lucide-react';
+import { Trash2, ListChecks, Eye } from 'lucide-react';
 
 interface GameListItemProps {
     game: {
@@ -34,13 +34,25 @@ const GameListItem: React.FC<GameListItemProps> = ({ game, setCurrentGameId, del
                 {game.date} - {game.opponent}
             </div>
             <div className="flex gap-2">
+                {/* Text Button (Hidden on Small Screens) */}
                 <Button
                     variant="outline"
                     size="sm"
+                    className="hidden md:flex items-center"
                     onClick={() => setCurrentGameId(game.id)}
                 >
                     <ListChecks className="mr-2 h-4 w-4" />
                     View Stats
+                </Button>
+                {/* Icon Button (Hidden on Medium Screens and Up) */}
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="md:hidden"
+                    onClick={() => setCurrentGameId(game.id)}
+                    aria-label="View Stats"
+                >
+                    <Eye className="h-4 w-4" />
                 </Button>
                 <Button
                     variant="destructive"
